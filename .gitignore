@@ -1,0 +1,12 @@
+# mix stuff
+/_build
+/cover
+/deps
+/doc
+/.fetch
+erl_crash.dump
+*.ez
+
+# vim stuff
+*.swp
+*.swo
