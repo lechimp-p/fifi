@@ -1,6 +1,5 @@
 # Fifi
 
-**TODO: Add description**
 **fifi** stands for *if this then if*. It is an attempt to clone basic
 [IFTT](https://ifttt.com/) functionality and learn Elixir along the way.
 
