@@ -4,7 +4,36 @@ defmodule Fifi.Source.SPON do
   """
 
   defmodule Handle do
-    defstruct id: ()
+    defstruct pid: ()
+  end
+
+  defmodule Worker do
+    use GenServer
+
+    def start_link() do
+      GenServer.start_link(__MODULE__, [])
+    end
+
+    def init([]) do
+      schedule_check()
+      {:ok, %{last_title: ()}}
+    end
+
+    def handle_info(:check, state) do
+      title = check(state)
+      schedule_check()
+      {:noreply, %{state | last_title: title}}
+    end
+
+    defp schedule_check() do
+      Process.send_after(self(), :check, 10_000)
+    end
+
+    defp check(state) do
+      title = Fifi.Source.SPON.get_title()
+      IO.puts title
+      title
+    end
   end
 
   def get_title do
