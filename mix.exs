@@ -28,6 +28,7 @@ defmodule Fifi.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [ {:httpoison, "~>0.11"},
+      {:floki, "~>0.13"}]
   end
 end
