@@ -7,6 +7,7 @@ defmodule Fifi.Mixfile do
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     escript: escript(),
      deps: deps()]
   end
 
@@ -16,6 +17,11 @@ defmodule Fifi.Mixfile do
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger]]
+  end
+
+  # escript configuration
+  defp escript do
+    [main_module: Fifi.CLI]
   end
 
   # Dependencies can be Hex packages:
