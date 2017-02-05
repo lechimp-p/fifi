@@ -1,6 +1,8 @@
 # Fifi
 
 **TODO: Add description**
+**fifi** stands for *if this then if*. It is an attempt to clone basic
+[IFTT](https://ifttt.com/) functionality and learn Elixir along the way.
 
 ## Installation
 
@@ -13,7 +15,8 @@ def deps do
 end
 ```
 
+## Developing
+
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/fifi](https://hexdocs.pm/fifi).
-
