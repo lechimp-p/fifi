@@ -8,8 +8,7 @@ defmodule Fifi.Source.SPON do
   end
 
   def get_title do
-    body = HTTPoison.get!("http://www.spiegel.de").body
-    body
+    HTTPoison.get!("http://www.spiegel.de").body
       |> Floki.find(".article-title")
       |> Floki.find(".headline")
       |> hd()
