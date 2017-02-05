@@ -10,13 +10,13 @@ defmodule Fifi.Source.SPON do
   defmodule Worker do
     use GenServer
 
-    def start_link() do
-      GenServer.start_link(__MODULE__, [])
+    def start_link(on_change) do
+      GenServer.start_link(__MODULE__, [on_change])
     end
 
-    def init([]) do
+    def init([on_change]) do
       schedule_check()
-      {:ok, %{last_title: ()}}
+      {:ok, %{last_title: (), on_change: on_change}}
     end
 
     def handle_info(:check, state) do
@@ -31,7 +31,9 @@ defmodule Fifi.Source.SPON do
 
     defp check(state) do
       title = Fifi.Source.SPON.get_title()
-      IO.puts title
+      if state.last_title != title do
+        state.on_change.(title)
+      end
       title
     end
   end
