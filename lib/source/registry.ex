@@ -1,6 +1,7 @@
 ## Registry for known sources of events.
 defmodule Fifi.Source.Registry do
   use GenServer
+  alias Fifi.Source.Source, as: Source
 
   ## Client API
 
@@ -15,6 +16,9 @@ defmodule Fifi.Source.Registry do
   Adds a source to the registry.
   """
   def add(server, name, source) do
+    if Source.impl_for(source) == nil do
+      raise ArgumentError, message: "Expected source to implement Fifi.Source.Source."
+    end
     GenServer.call(server, {:add, name, source})
   end
 
