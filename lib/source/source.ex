@@ -8,5 +8,6 @@ defprotocol Fifi.Source.Source do
   """
 
   @doc "Get a description of the source."
+  @spec description(t) :: String.t
   def description(source)
 end
