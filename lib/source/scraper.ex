@@ -37,13 +37,26 @@ defmodule Fifi.Source.Scraper do
         |> hd()
         |> extractor.()
     end
+
+  @doc """
+  Start the scraper, make it report changes via on_update.
+  """
+  @spec start_link(Handle, pos_integer, Fifi.Source.Source.on_update) :: GenServer.on_start
+  def start_link(handle, frequency, on_update) do
+    get_state = fn -> __MODULE__.scrape(handle) end
+    Fifi.Source.Check.start_link(frequency, get_state, on_update)
+  end
 end
 
 defimpl Fifi.Source.Source, for: Fifi.Source.Scraper.Handle do
+  alias Fifi.Source.Scraper, as: Scraper 
   alias Fifi.Source.Scraper.Handle, as: Handle
 
   def description(%Handle{url: url, css_selector: css_selector})
     when is_binary(url)
     when is_binary(css_selector),
       do: ~s(Watches '#{url}' at '#{css_selector}'.)
+
+  def start_link(handle, frequency, on_update),
+      do: Scraper.start_link(handle, frequency, on_update)
 end
