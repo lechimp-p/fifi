@@ -22,6 +22,21 @@ defmodule Fifi.Source.Scraper do
             css_selector: css_selector,
             extractor: extractor}
   end
+
+  @doc """
+  Scrape the value defined by the scraper.
+  """
+  @spec scrape(Handle) :: any
+  def scrape(%Handle{url: url, css_selector: css_selector, extractor: extractor})
+    when is_binary(url)
+    when is_binary(css_selector)
+    when is_function(extractor, 1)
+    do
+      HTTPoison.get!(url).body
+        |> Floki.find(css_selector)
+        |> hd()
+        |> extractor.()
+    end
 end
 
 defimpl Fifi.Source.Source, for: Fifi.Source.Scraper.Handle do
