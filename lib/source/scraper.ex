@@ -3,19 +3,24 @@ defmodule Fifi.Source.Scraper do
   A source that watches some DOM element defined by a CSS selector on a defined
   URL.
   """
+  @type extractor :: (Map -> any)
+
   defmodule Handle do
-    defstruct url: nil, css_selector: nil
+    defstruct url: nil, css_selector: nil, extractor: nil
   end
 
   @doc """
-  Build a scraper by supplying an url to scrape and a CSS selector for a DOM
-  element on said url.
+  Build a scraper by supplying an url to scrape, a CSS selector for a DOM
+  element on said url and a function to extract the desired info from that
+  element.
 
   Will watch the first DOM element matching the selector.
   """
-  @spec build(String.t, String.t) :: Fifi.Source.Source
-  def build(url, css_selector) do
-    %Handle{url: url, css_selector: css_selector}
+  @spec build(String.t, String.t, extractor) :: Fifi.Source.Source
+  def build(url, css_selector, extractor \\ &(&1)) do
+    %Handle{url: url,
+            css_selector: css_selector,
+            extractor: extractor}
   end
 end
 
