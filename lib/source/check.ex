@@ -4,14 +4,32 @@ defmodule Fifi.Source.Check do
   """
   use GenServer
 
-  def start_link(frequency, get_state, on_change) do
-    GenServer.start_link(__MODULE__, {frequency, get_state, on_change})
-  end
+  @type get_state :: (() -> any)
+  @type on_change :: (any -> ())
 
-  def start(frequency, get_state, on_change) do
-    GenServer.start(__MODULE__, {frequency, get_state, on_change})
-  end
+  @doc """
+  Start the checker with a frequency (in ms), a state getting function and
+  a function saying what to do when the state changes.
+  """
+  @spec start_link(pos_integer, get_state, on_change) :: GenServer.on_start
+  def start_link(frequency, get_state, on_change)
+    when (frequency > 0)
+    do
+      GenServer.start_link(__MODULE__, {frequency, get_state, on_change})
+    end
 
+  @doc """
+  Start the checker with a frequency (in ms), a state getting function and
+  a function saying what to do when the state changes.
+  """
+  @spec start_link(pos_integer, get_state, on_change) :: GenServer.on_start
+  def start(frequency, get_state, on_change)
+    when (frequency > 0)
+    do
+      GenServer.start(__MODULE__, {frequency, get_state, on_change})
+    end
+
+  @doc "from GenServer"
   def init({frequency, get_state, on_change}) do
     schedule_check(frequency)
     current_state = get_state.()
@@ -21,6 +39,7 @@ defmodule Fifi.Source.Check do
             on_change: on_change}}
   end
 
+  @doc "from GenServer"
   def handle_info(:check, state) do
     new_state = check(state)
     schedule_check(state.frequency)
