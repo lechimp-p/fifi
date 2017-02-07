@@ -4,12 +4,12 @@ defmodule Fifi.Source.CheckTest do
 
   alias Fifi.Source.Check, as: Check
 
-  def init(states) do
+  def init(states, initial_state \\ nil) do
     {:ok, updates} = Agent.start(fn -> states end)
     get_state = fn -> Agent.get_and_update(updates, fn [h | t] -> {h,t} end) end
     {:ok, retreiver} = Agent.start(fn -> [] end)
     on_update = fn v -> Agent.update(retreiver, fn s -> [v | s] end) end
-    {:ok, _} = Check.start(1, get_state, on_update)
+    {:ok, _} = Check.start(1, get_state, on_update, initial_state)
     {updates, retreiver}
   end
 
@@ -27,5 +27,13 @@ defmodule Fifi.Source.CheckTest do
     Process.sleep(10)
     assert not Process.alive?(updates)
     assert Agent.get(retreiver, &(&1)) == []
+  end
+
+  @tag :capture_log
+  test "use initial state" do
+    {updates, retreiver} = init([1], 0)
+    Process.sleep(10)
+    assert not Process.alive?(updates)
+    assert Agent.get(retreiver, &(&1)) == [1]
   end
 end
