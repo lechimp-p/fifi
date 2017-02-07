@@ -2,6 +2,15 @@ defmodule Fifi.Source.Scraper do
   @moduledoc """
   A source that watches some DOM element defined by a CSS selector on a defined
   URL.
+
+  # Example
+
+  Scrape commits from GitHub like this:
+    iex(0)> s = Fifi.Source.Scraper.build(
+                  "https://github.com/lechimp-p/fifi/commits/master",
+                  ".commit-title a",
+                  &(&1 |> Floki.attribute("title") |> hd() |> String.trim()))
+    iex(1)> {:ok, pid} = Fifi.Source.Source.start_link(s, 10_000, &(IO.puts &1))
   """
   @type extractor :: (Map -> any)
 
