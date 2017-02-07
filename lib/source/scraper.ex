@@ -6,11 +6,13 @@ defmodule Fifi.Source.Scraper do
   # Example
 
   Scrape commits from GitHub like this:
-    iex(0)> s = Fifi.Source.Scraper.build(
-                  "https://github.com/lechimp-p/fifi/commits/master",
-                  ".commit-title a",
-                  &(&1 |> Floki.attribute("title") |> hd() |> String.trim()))
-    iex(1)> {:ok, pid} = Fifi.Source.Source.start_link(s, 10_000, &(IO.puts &1))
+    iex> url = "https://github.com/lechimp-p/fifi/commits/master"
+    iex> css_selector = ".commit-title a"
+    iex> extractor = &(&1 |> Floki.attribute("title") |> hd() |> String.trim())
+    iex> s = Fifi.Source.Scraper.build(url, css_selector, extractor)
+    iex> {ok?, _}  = Fifi.Source.Source.start_link(s, 10_000, &(IO.puts &1))
+    iex> ok?
+    :ok
   """
   @type extractor :: (Map -> any)
 
