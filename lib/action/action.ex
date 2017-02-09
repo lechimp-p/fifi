@@ -1,4 +1,4 @@
-defmodule Action do
+defmodule Fifi.Action.Action do
   @moduledoc ~S"""
   Specification of how an action must look like.
   """
@@ -7,16 +7,16 @@ defmodule Action do
   @callback act(config, String) :: nil
 end
 
-defmodule ActionPerformer do
-  @default_action Stdout
+defmodule Fifi.Action.ActionPerformer do
+  @default_action Fifi.Action.Stdout
 
   def perform(config, text, action \\ @default_action) do
     action.act config, text
   end
 end
 
-defmodule Stdout do
-  @behaviour Action
+defmodule Fifi.Action.Stdout do
+  @behaviour Fifi.Action.Action
 
   def act(%{prefix: prefix}, text) do
     IO.puts "#{prefix}#{text}"
@@ -27,16 +27,16 @@ defmodule Stdout do
   end
 end
 
-defmodule Webhook do
-  @behaviour Action
+defmodule Fifi.Action.Webhook do
+  @behaviour Fifi.Action.Action
 
   def act(_, text) do
     text
   end
 end
 
-defmodule Tweet do
-  @behaviour Action
+defmodule Fifi.Action.Tweet do
+  @behaviour Fifi.Action.Action
 
   def act(_, text) do
     text
