@@ -4,7 +4,7 @@ defmodule Fifi.Action.Action do
   """
   @type config :: Map
 
-  @callback act(config, String) :: nil
+  @callback act(config, String) :: Tuple
 end
 
 defmodule Fifi.Action.ActionPerformer do
@@ -20,18 +20,21 @@ defmodule Fifi.Action.Stdout do
 
   def act(%{prefix: prefix}, text) do
     IO.puts "#{prefix}#{text}"
+    {:ok, text}
   end
 
   def act(_, text) do
     IO.puts text
+    {:ok, text}
   end
 end
 
 defmodule Fifi.Action.Webhook do
   @behaviour Fifi.Action.Action
 
-  def act(_, text) do
-    text
+  def act(%{url: url}, text) do
+    body = HTTPoison.post!(url, text).body
+    {:ok, body}
   end
 end
 
@@ -39,6 +42,6 @@ defmodule Fifi.Action.Tweet do
   @behaviour Fifi.Action.Action
 
   def act(_, text) do
-    text
+    {:ok, text}
   end
 end
