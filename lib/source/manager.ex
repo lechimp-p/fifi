@@ -4,6 +4,7 @@ defmodule Fifi.Source.Manager do
   """
   use GenServer
   alias Fifi.Source.Registry, as: Registry 
+  alias Fifi.Source.Source, as: Source 
 
   @doc """
   List all sources manager by the manager.
@@ -14,36 +15,41 @@ defmodule Fifi.Source.Manager do
   end
 
   @doc """
+  Add a source to the manager.
+  """
+  @spec add(PID, String.t, Source) :: :ok|:error
+  def add(manager, name, source) do
+    GenServer.call(manager, {:add, name, source})
+  end
+
+  @doc """
   Start a manager.
   """
-  @spec start_link([Fifi.Source.Source]) :: PID
-  def start_link(sources) do
-    GenServer.start_link(__MODULE__, {sources}, [])
+  @spec start_link() :: PID
+  def start_link() do
+    GenServer.start_link(__MODULE__, :ok, [])
   end
 
   ## Server Callbacks
 
-  ## sets the server up. second arg is state.
-  def init({sources}) do
+  def init(:ok) do
     {:ok, registry} = Registry.start_link()
-    Enum.map(sources, fn {name, s} -> Registry.add(registry, name, s) end)
     {:ok, %{registry: registry}}
   end
 
-  ## call is for sync callbacks.
   def handle_call({:list}, _from, state) do
     {:reply, Registry.list(state.registry), state}
   end
 
-  ## cast is for async callbacks, where clients don't care if msg really was
-  ## passed.
+  def handle_call({:add, name, source}, _from, state) do
+    {:reply, Registry.add(state.registry, name, source), state}
+  end
+
   def handle_cast(_msg, state) do
     {:noreply, state}
   end
 
-  ## info is for all other messages.
   def handle_info(_msg, state) do
     {:noreply, state}
   end
-
 end
