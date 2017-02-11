@@ -1,5 +1,7 @@
-## Registry for known sources of events.
 defmodule Fifi.Source.Registry do
+  @moduledoc """
+  Registry for known sources of events.
+  """
   use GenServer
   alias Fifi.Source.Source, as: Source
 
