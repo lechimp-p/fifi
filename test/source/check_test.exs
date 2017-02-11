@@ -16,7 +16,7 @@ defmodule Fifi.Source.CheckTest do
   @tag :capture_log
   test "calls on_change on update" do
     {updates, retreiver} = init([1,2])
-    Process.sleep(10)
+    Process.sleep(50)
     assert not Process.alive?(updates)
     assert Agent.get(retreiver, &(&1)) == [2]
   end
@@ -24,7 +24,7 @@ defmodule Fifi.Source.CheckTest do
   @tag :capture_log
   test "does not call on_change when there was no update" do
     {updates, retreiver} = init([1,1])
-    Process.sleep(10)
+    Process.sleep(50)
     assert not Process.alive?(updates)
     assert Agent.get(retreiver, &(&1)) == []
   end
@@ -32,7 +32,7 @@ defmodule Fifi.Source.CheckTest do
   @tag :capture_log
   test "use initial state" do
     {updates, retreiver} = init([1], 0)
-    Process.sleep(10)
+    Process.sleep(50)
     assert not Process.alive?(updates)
     assert Agent.get(retreiver, &(&1)) == [1]
   end
