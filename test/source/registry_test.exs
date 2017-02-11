@@ -29,4 +29,12 @@ defmodule Fifi.Source.RegistryTest do
     Registry.add(registry, "foo", null)
     assert Registry.get(registry, "foo") == {:ok, null}
   end
+
+  test "list existing sources", %{registry: registry} do
+    one = %Null{id: "one"}
+    Registry.add(registry, "one", one)
+    two = %Null{id: "two"}
+    Registry.add(registry, "two", two)
+    assert Registry.list(registry) == ["one", "two"]
+  end
 end

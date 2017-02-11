@@ -29,6 +29,13 @@ defmodule Fifi.Source.Registry do
     GenServer.call(server, {:get, name})
   end
 
+  @doc """
+  List all sources in the registry.
+  """
+  def list(server) do
+    GenServer.call(server, {:list})
+  end
+
   ## Server Callbacks
 
   ## sets the server up. second arg is state.
@@ -43,6 +50,10 @@ defmodule Fifi.Source.Registry do
 
   def handle_call({:get, name}, _from, sources) do
     {:reply, Map.fetch(sources, name), sources}
+  end
+
+  def handle_call({:list}, _from, sources) do
+    {:reply, Map.keys(sources), sources}
   end
 
   ## cast is for async callbacks, where clients don't care if msg really was
