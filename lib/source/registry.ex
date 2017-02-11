@@ -48,6 +48,22 @@ defmodule Fifi.Source.Registry do
     GenServer.call(server, {:list})
   end
 
+  @doc """
+  Set the PID for a source in the registry.
+  """
+  @spec set_pid(PID, String.t, PID) :: :ok|:error
+  def set_pid(server, name, pid) when is_pid(pid) do
+    GenServer.call(server, {:set_pid, name, pid})
+  end
+
+  @doc """
+  Get the PID for a source in the registry.
+  """
+  @spec get_pid(PID, String.t) :: {:ok, PID}|:error
+  def get_pid(server, name) do
+    GenServer.call(server, {:get_pid, name})
+  end
+
   ## Server Callbacks
 
   ## sets the server up. second arg is state.
@@ -58,18 +74,22 @@ defmodule Fifi.Source.Registry do
   ## call is for sync callbacks.
   def handle_call({:add, name, source}, _from, sources) do
     if not Map.has_key?(sources, name) do
-      {:reply, :ok, Map.put(sources, name, source)}
+      {:reply, :ok, Map.put(sources, name, {source, nil})}
     else
       {:reply, :error, sources}
     end
   end
 
   def handle_call({:get, name}, _from, sources) do
-    {:reply, Map.fetch(sources, name), sources}
+    res = case Map.fetch(sources, name) do
+      {:ok, {source, _pid}} -> {:ok, source}
+      :error -> :error
+    end
+    {:reply, res, sources}
   end
 
   def handle_call({:remove, name}, _from, sources) do
-     if Map.has_key?(sources, name) do
+    if Map.has_key?(sources, name) do
       {:reply, :ok, Map.delete(sources, name)}
     else
       {:reply, :error, sources}
@@ -78,6 +98,24 @@ defmodule Fifi.Source.Registry do
 
   def handle_call({:list}, _from, sources) do
     {:reply, Map.keys(sources), sources}
+  end
+
+  def handle_call({:set_pid, name, pid}, _from, sources) when is_pid(pid) do
+    case Map.fetch(sources, name) do
+      {:ok, {source, _pid}} -> {:reply, :ok, Map.put(sources, name, {source, pid})}
+      :error -> {:reply, :error, sources}
+    end
+  end
+
+  def handle_call({:get_pid, name}, _from, sources) do
+    res = case Map.fetch(sources, name) do
+      {:ok, {_source, pid}} -> case pid do
+          nil -> :error
+          pid -> {:ok, pid}
+        end
+      :error -> :error
+    end
+    {:reply, res, sources}
   end
 
   ## cast is for async callbacks, where clients don't care if msg really was
