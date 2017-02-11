@@ -17,6 +17,7 @@ defmodule Fifi.Source.Registry do
   @doc """
   Adds a source to the registry.
   """
+  @spec add(PID, String.t, Source) :: :ok|:error
   def add(server, name, source) do
     if Source.impl_for(source) == nil do
       raise ArgumentError, message: "Expected source to implement Fifi.Source.Source."
@@ -47,7 +48,11 @@ defmodule Fifi.Source.Registry do
 
   ## call is for sync callbacks.
   def handle_call({:add, name, source}, _from, sources) do
-    {:reply, :ok, Map.put(sources, name, source)}
+    if not Map.has_key?(sources, name) do
+      {:reply, :ok, Map.put(sources, name, source)}
+    else
+      {:reply, :error, sources}
+    end
   end
 
   def handle_call({:get, name}, _from, sources) do

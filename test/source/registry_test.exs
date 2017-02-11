@@ -37,4 +37,11 @@ defmodule Fifi.Source.RegistryTest do
     Registry.add(registry, "two", two)
     assert Registry.list(registry) == ["one", "two"]
   end
+
+  test "can't add source with the same name", %{registry: registry} do
+    one = %Null{id: "one"}
+    :ok = Registry.add(registry, "one", one)
+    two = %Null{id: "two"}
+    :error = Registry.add(registry, "one", two)
+  end
 end
