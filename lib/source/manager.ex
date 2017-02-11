@@ -23,6 +23,14 @@ defmodule Fifi.Source.Manager do
   end
 
   @doc """
+  Remove a source from the manager.
+  """
+  @spec remove(PID, String.t) :: :ok|:error
+  def remove(manager, name) do
+    GenServer.call(manager, {:remove, name})
+  end
+
+  @doc """
   Start a manager.
   """
   @spec start_link() :: PID
@@ -43,6 +51,10 @@ defmodule Fifi.Source.Manager do
 
   def handle_call({:add, name, source}, _from, state) do
     {:reply, Registry.add(state.registry, name, source), state}
+  end
+
+  def handle_call({:remove, name}, _from, state) do
+    {:reply, Registry.remove(state.registry, name), state}
   end
 
   def handle_cast(_msg, state) do
