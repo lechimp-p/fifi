@@ -48,4 +48,12 @@ defmodule Fifi.Source.RegistryTest do
     two = %Null{id: "two"}
     :error = Registry.add(registry, "one", two)
   end
+
+  test "remove source", %{registry: registry} do
+    one = %Null{id: "one"}
+    Registry.add(registry, "one", one)
+    assert Registry.remove(registry, "one") == :ok
+    assert Registry.get(registry, "one") == :error
+    assert Registry.remove(registry, "one") == :error
+  end
 end

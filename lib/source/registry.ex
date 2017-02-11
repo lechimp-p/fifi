@@ -34,6 +34,14 @@ defmodule Fifi.Source.Registry do
   end
 
   @doc """
+  Remove a source from the registry.
+  """
+  @spec remove(PID, String.t) :: :ok|:error
+  def remove(server, name) do
+    GenServer.call(server, {:remove, name})
+  end
+
+  @doc """
   List all sources in the registry.
   """
   def list(server) do
@@ -58,6 +66,14 @@ defmodule Fifi.Source.Registry do
 
   def handle_call({:get, name}, _from, sources) do
     {:reply, Map.fetch(sources, name), sources}
+  end
+
+  def handle_call({:remove, name}, _from, sources) do
+     if Map.has_key?(sources, name) do
+      {:reply, :ok, Map.delete(sources, name)}
+    else
+      {:reply, :error, sources}
+    end
   end
 
   def handle_call({:list}, _from, sources) do
