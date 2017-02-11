@@ -30,6 +30,10 @@ defmodule Fifi.Source.RegistryTest do
     assert Registry.get(registry, "foo") == {:ok, null}
   end
 
+  test "can't get non existing source", %{registry: registry} do
+    assert Registry.get(registry, "foo") == :error
+  end
+
   test "list existing sources", %{registry: registry} do
     one = %Null{id: "one"}
     Registry.add(registry, "one", one)

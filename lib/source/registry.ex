@@ -28,6 +28,7 @@ defmodule Fifi.Source.Registry do
   @doc """
   Get a source from the registry.
   """
+  @spec get(PID, String.t) :: {:ok, Source}|:error
   def get(server, name) do
     GenServer.call(server, {:get, name})
   end
