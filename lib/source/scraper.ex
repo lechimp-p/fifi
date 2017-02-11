@@ -43,6 +43,7 @@ defmodule Fifi.Source.Scraper do
     when is_binary(css_selector)
     when is_function(extractor, 1)
     do
+      # TODO: if we would inject HTTPPoison.get this could be tested
       HTTPoison.get!(url).body
         |> Floki.find(css_selector)
         |> hd()
