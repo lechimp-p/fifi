@@ -34,6 +34,17 @@ defmodule Fifi.Source.Registry do
   end
 
   @doc """
+  Check if a source is contained in the registry.
+  """
+  @spec contains_source?(PID, String.t) :: boolean
+  def contains_source?(server, name) do
+    case get(server, name) do
+      {:ok, _source} -> true
+      :error -> false
+    end
+  end
+
+  @doc """
   Remove a source from the registry.
   """
   @spec remove(PID, String.t) :: :ok|:error

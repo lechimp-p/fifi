@@ -42,6 +42,13 @@ defmodule Fifi.Source.RegistryTest do
     assert Registry.list(registry) == ["one", "two"]
   end
 
+  test "check for existing source", %{registry: registry} do
+    assert not Registry.contains_source?(registry, "one")
+    one = %Null{id: "one"}
+    Registry.add(registry, "one", one)
+    assert Registry.contains_source?(registry, "one")
+  end
+
   test "can't add source with the same name", %{registry: registry} do
     one = %Null{id: "one"}
     :ok = Registry.add(registry, "one", one)
