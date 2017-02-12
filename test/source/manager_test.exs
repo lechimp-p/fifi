@@ -68,4 +68,26 @@ defmodule Fifi.Source.ManagerTest do
     Manager.remove_listener(manager, ref2)
     assert not Process.alive?(called)
   end
+
+  test "call listeners on update", %{manager: manager} do
+    {:ok, called} = Agent.start(fn -> false end)
+    update_called = fn v -> Agent.update(called, fn _ -> v end) end
+
+    {:ok, update} = Agent.start(fn -> false end)
+    start_link = fn _f, ou ->
+      Agent.update(update, fn _ -> ou end)
+      {:ok, update}
+    end
+    one = %Null{start_link: start_link}
+    Manager.add_source(manager, "one", one)
+
+    {:ok, ref1} = Manager.add_listener(manager, "one", update_called)
+    on_update = Agent.get(update, &(&1))
+    on_update.(42)
+    assert Agent.get(called, &(&1)) == 42
+
+    Manager.remove_listener(manager, ref1)
+    on_update.(23)
+    assert Agent.get(called, &(&1)) == 42
+  end
 end
