@@ -19,7 +19,7 @@ defmodule Fifi.Source.Multiplexer do
   @spec add(PID, listener) :: reference
   def add(multiplexer, listener) when is_function(listener, 1) do
     ref = make_ref()
-    Agent.update(multiplexer, fn map -> Map.put(map, ref, listener) end)
+    Agent.update(multiplexer, &(Map.put(&1, ref, listener)))
     ref
   end
 
@@ -27,9 +27,9 @@ defmodule Fifi.Source.Multiplexer do
   Remove a function from the multiplexer.
   """
   @spec remove(PID, reference) :: :ok|:error
-  def remove(multiplexer, reference) do
-    if Agent.get(multiplexer, &(Map.has_key?(&1, reference))) do
-      Agent.update(multiplexer, &(Map.delete(&1, reference)))
+  def remove(multiplexer, ref) do
+    if Agent.get(multiplexer, &(Map.has_key?(&1, ref))) do
+      Agent.update(multiplexer, &(Map.delete(&1, ref)))
       :ok
     else
       :error
