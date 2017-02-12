@@ -67,29 +67,29 @@ defmodule Fifi.Source.RegistryTest do
   test "set pid for source", %{registry: registry} do
     one = %Null{id: "one"}
     Registry.add(registry, "one", one)
-    :ok = Registry.set_pid(registry, "one", self())
-    assert Registry.get_pid(registry, "one") == {:ok, self()}
+    :ok = Registry.set_info(registry, :pid, "one", self())
+    assert Registry.get_info(registry, :pid, "one") == {:ok, self()}
   end
 
   test "can't set pid for non-existing source", %{registry: registry} do
-    assert Registry.set_pid(registry, "one", self()) == :error
+    assert Registry.set_info(registry, :pid, "one", self()) == :error
   end
 
   test "can't get pid for non-existing source", %{registry: registry} do
-    assert Registry.get_pid(registry, "one") == :error
+    assert Registry.get_info(registry, :pid, "one") == :error
   end
 
   test "can't get pid that was not set", %{registry: registry} do
     one = %Null{id: "one"}
     Registry.add(registry, "one", one)
-    assert Registry.get_pid(registry, "one") == :error
+    assert Registry.get_info(registry, :pid, "one") == :error
   end
 
   test "remove pid when removing source", %{registry: registry} do
     one = %Null{id: "one"}
     Registry.add(registry, "one", one)
-    Registry.set_pid(registry, "one", self())
+    Registry.set_info(registry, :pid, "one", self())
     Registry.remove(registry, "one")
-    assert Registry.get_pid(registry, "one") == :error
+    assert Registry.get_info(registry, :pid, "one") == :error
   end
 end

@@ -60,19 +60,19 @@ defmodule Fifi.Source.Registry do
   end
 
   @doc """
-  Set the PID for a source in the registry.
+  Set additional info for a source in the registry.
   """
-  @spec set_pid(PID, String.t, PID) :: :ok|:error
-  def set_pid(server, name, pid) when is_pid(pid) do
-    GenServer.call(server, {:set_pid, name, pid})
+  @spec set_info(PID, atom, String.t, any) :: :ok|:error
+  def set_info(server, key, name, value) do
+    GenServer.call(server, {:set_info, key, name, value})
   end
 
   @doc """
-  Get the PID for a source in the registry.
+  Get additional info for a source in the registry.
   """
-  @spec get_pid(PID, String.t) :: {:ok, PID}|:error
-  def get_pid(server, name) do
-    GenServer.call(server, {:get_pid, name})
+  @spec get_info(PID, atom, String.t) :: {:ok, any}|:error
+  def get_info(server, key, name) do
+    GenServer.call(server, {:get_info, key, name})
   end
 
   ## Server Callbacks
@@ -85,7 +85,7 @@ defmodule Fifi.Source.Registry do
   ## call is for sync callbacks.
   def handle_call({:add, name, source}, _from, sources) do
     if not Map.has_key?(sources, name) do
-      {:reply, :ok, Map.put(sources, name, {source, nil})}
+      {:reply, :ok, Map.put(sources, name, {source, %{}})}
     else
       {:reply, :error, sources}
     end
@@ -111,18 +111,20 @@ defmodule Fifi.Source.Registry do
     {:reply, Map.keys(sources), sources}
   end
 
-  def handle_call({:set_pid, name, pid}, _from, sources) when is_pid(pid) do
+  def handle_call({:set_info, key, name, value}, _from, sources) when is_atom(key) do
     case Map.fetch(sources, name) do
-      {:ok, {source, _pid}} -> {:reply, :ok, Map.put(sources, name, {source, pid})}
+      {:ok, {source, info}} ->
+        updated_info =  Map.put(info, key, value)
+        {:reply, :ok, Map.put(sources, name, {source, updated_info})}
       :error -> {:reply, :error, sources}
     end
   end
 
-  def handle_call({:get_pid, name}, _from, sources) do
+  def handle_call({:get_info, key, name}, _from, sources) do
     res = case Map.fetch(sources, name) do
-      {:ok, {_source, pid}} -> case pid do
+      {:ok, {_source, info}} -> case Map.get(info, key) do
           nil -> :error
-          pid -> {:ok, pid}
+          value -> {:ok, value}
         end
       :error -> :error
     end
