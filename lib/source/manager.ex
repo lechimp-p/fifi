@@ -5,6 +5,7 @@ defmodule Fifi.Source.Manager do
   use GenServer
   alias Fifi.Source.Registry, as: Registry 
   alias Fifi.Source.Source, as: Source 
+  alias Fifi.Source.Multiplexer, as: Multiplexer
 
   @default_frequency 10_000
 
@@ -37,9 +38,17 @@ defmodule Fifi.Source.Manager do
   @doc """
   Add a listener for a source.
   """
-  @spec add_listener(PID, String.t, listener) :: {:ok, reference}|:error
+  @spec add_listener(PID, String.t, listener) :: {:ok, {String.t, reference}}|:error
   def add_listener(manager, name, listener) do
     GenServer.call(manager, {:add_listener, name, listener})
+  end
+
+  @doc """
+  Remove a listener.
+  """
+  @spec remove_listener(PID, {String.t, reference}) :: :ok|:error
+  def remove_listener(manager, {name, ref}) do
+    GenServer.call(manager, {:remove_listener, {name, ref}})
   end
 
   @doc """
@@ -62,20 +71,49 @@ defmodule Fifi.Source.Manager do
   end
 
   def handle_call({:add_source, name, source}, _from, state) do
-    {:reply, Registry.add(state.registry, name, source), state}
+    res = Registry.add(state.registry, name, source)
+    if res == :ok do
+      {:ok, multiplexer} = Multiplexer.start_link()
+      :ok = Registry.set_info(state.registry, :multiplexer, name, multiplexer)
+    end
+    {:reply, res, state}
   end
 
   def handle_call({:remove_source, name}, _from, state) do
     {:reply, Registry.remove(state.registry, name), state}
   end
 
-  def handle_call({:add_listener, name, _listener}, _from, state) do
-    case Registry.get(state.registry, name) do
+  def handle_call({:add_listener, name, listener}, _from, state) do
+    case Registry.get_info(state.registry, :multiplexer, name) do
       :error -> {:reply, :error, state}
-      {:ok, source} -> case Source.start_link(source, @default_frequency, fn x -> IO.puts x end) do 
-        {:error, _reason} -> {:reply, :error, state}
-        {:ok, _pid} -> {:reply, {:ok, make_ref()}, state}
-      end
+      {:ok, multiplexer} ->
+        ref = Multiplexer.add(multiplexer, listener)
+        if Multiplexer.count(multiplexer) == 1 do
+          {:ok, source} = Registry.get(state.registry, name)
+          on_update = fn v -> Multiplexer.call(multiplexer, v) end
+          case Source.start_link(source, @default_frequency, on_update) do
+            {:error, _reason} -> {:reply, :error, state}
+            {:ok, pid} ->
+              Registry.set_info(state.registry, :pid, name, pid)
+              {:reply, {:ok, {name, ref}}, state}
+          end
+        else
+          {:reply, {:ok, {name, ref}}, state}
+        end
+    end
+  end
+
+  def handle_call({:remove_listener, {name, ref}}, _from, state) do
+    case Registry.get_info(state.registry, :multiplexer, name) do
+      :error -> {:reply, :error, state}
+      {:ok, multiplexer} ->
+        :ok = Multiplexer.remove(multiplexer, ref)
+        if Multiplexer.count(multiplexer) == 0 do
+          case Registry.get_info(state.registry, :pid, name) do
+            {:ok, pid} -> Process.exit(pid, "No one is listening to that source anymore.")
+          end
+        end
+        {:reply, :ok, state}
     end
   end
 

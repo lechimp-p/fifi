@@ -44,10 +44,28 @@ defmodule Fifi.Source.ManagerTest do
     assert Manager.add_listener(manager, "one", fn _ -> :ok end) == :error
   end
 
-  test "get reference when adding listener", %{manager: manager} do
+  test "get reference and name when adding listener", %{manager: manager} do
     one = %Null{start_link: fn _f, _ou -> {:ok, self()} end}
     Manager.add_source(manager, "one", one)
-    {:ok, ref} = Manager.add_listener(manager, "one", fn _ -> :ok end)
+    {:ok, {name, ref}} = Manager.add_listener(manager, "one", fn _ -> :ok end)
     assert is_reference(ref)
+    assert is_binary(name)
+  end
+
+  test "stop sources when all listeners are removed", %{manager: manager} do
+    {:ok, called} = Agent.start(fn -> false end)
+    start_link = fn _f, _ou ->
+      Agent.update(called, fn _ -> true end)
+      {:ok, called}
+    end
+    one = %Null{start_link: start_link}
+    Manager.add_source(manager, "one", one)
+    {:ok, ref1} = Manager.add_listener(manager, "one", fn _ -> :ok end)
+    {:ok, ref2} = Manager.add_listener(manager, "one", fn _ -> :ok end)
+    assert Process.alive?(called)
+    Manager.remove_listener(manager, ref1)
+    assert Process.alive?(called)
+    Manager.remove_listener(manager, ref2)
+    assert not Process.alive?(called)
   end
 end
