@@ -10,6 +10,7 @@ defmodule Fifi.Source.Manager do
   @default_frequency 10_000
 
   @type listener :: (any -> any)
+  @type listener_ref :: {String.t, reference}
 
   @doc """
   List all sources manager by the manager.
@@ -38,7 +39,7 @@ defmodule Fifi.Source.Manager do
   @doc """
   Add a listener for a source.
   """
-  @spec add_listener(PID, String.t, listener) :: {:ok, {String.t, reference}}|:error
+  @spec add_listener(PID, String.t, listener) :: {:ok, listener_ref}|:error
   def add_listener(manager, name, listener) do
     GenServer.call(manager, {:add_listener, name, listener})
   end
@@ -46,9 +47,9 @@ defmodule Fifi.Source.Manager do
   @doc """
   Remove a listener.
   """
-  @spec remove_listener(PID, {String.t, reference}) :: :ok|:error
-  def remove_listener(manager, {name, ref}) do
-    GenServer.call(manager, {:remove_listener, {name, ref}})
+  @spec remove_listener(PID, listener_ref) :: :ok|:error
+  def remove_listener(manager, ref) do
+    GenServer.call(manager, {:remove_listener, ref})
   end
 
   @doc """
