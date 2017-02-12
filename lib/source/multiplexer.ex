@@ -37,6 +37,14 @@ defmodule Fifi.Source.Multiplexer do
   end
 
   @doc """
+  Count the functions in this multiplexer.
+  """
+  @spec count(PID) :: non_neg_integer
+  def count(multiplexer) do
+    Agent.get(multiplexer, &(Map.size(&1)))
+  end
+
+  @doc """
   Call the functions in the multiplexer.
   """
   @spec call(PID, any) :: nil
