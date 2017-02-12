@@ -18,4 +18,16 @@ defmodule Fifi.Source.MultiplexerTest do
     assert Agent.get(a1, &(&1)) == "Hello World!"
     assert Agent.get(a2, &(&1)) == "Hello World!"
   end
+
+  test "remove multiplexer", %{multiplexer: multiplexer} do
+    {:ok, a1} = Agent.start(fn -> nil end)
+    Multiplexer.add(multiplexer, fn v -> Agent.update(a1, fn _ -> v end) end)
+    {:ok, a2} = Agent.start(fn -> nil end)
+    ref2 = Multiplexer.add(multiplexer, fn v -> Agent.update(a2, fn _ -> v end) end)
+    :ok = Multiplexer.remove(multiplexer, ref2)
+    :error = Multiplexer.remove(multiplexer, ref2)
+    Multiplexer.call(multiplexer, "Hello World!")
+    assert Agent.get(a1, &(&1)) == "Hello World!"
+    assert Agent.get(a2, &(&1)) == nil
+  end
 end

@@ -24,6 +24,19 @@ defmodule Fifi.Source.Multiplexer do
   end
 
   @doc """
+  Remove a function from the multiplexer.
+  """
+  @spec remove(PID, reference) :: :ok|:error
+  def remove(multiplexer, reference) do
+    if Agent.get(multiplexer, &(Map.has_key?(&1, reference))) do
+      Agent.update(multiplexer, &(Map.delete(&1, reference)))
+      :ok
+    else
+      :error
+    end
+  end
+
+  @doc """
   Call the functions in the multiplexer.
   """
   @spec call(PID, any) :: nil
