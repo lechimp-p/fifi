@@ -31,7 +31,7 @@ defmodule Fifi.Source.Manager do
   @doc """
   Add a source to the manager.
   """
-  @spec add_source(PID, String.t, Source) :: :ok|:error
+  @spec add_source(PID, String.t, Source) :: :ok|{:error, String.t}
   def add_source(manager, name, source) do
     GenServer.call(manager, {:add_source, name, source})
   end
@@ -85,12 +85,14 @@ defmodule Fifi.Source.Manager do
   end
 
   def handle_call({:add_source, name, source}, _from, state) do
-    res = Registry.add(state.registry, name, source)
-    if res == :ok do
+    if not Registry.contains_source?(state.registry, name) do
+      :ok = Registry.add(state.registry, name, source)
       {:ok, multiplexer} = Multiplexer.start_link()
       :ok = Registry.set_info(state.registry, :multiplexer, name, multiplexer)
+      {:reply, :ok, state}
+    else
+      {:reply, {:error, ~s(Manager already contains source '#{name}'.)}, state}
     end
-    {:reply, res, state}
   end
 
   def handle_call({:remove_source, name}, _from, state) do

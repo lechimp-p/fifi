@@ -18,6 +18,14 @@ defmodule Fifi.Source.ManagerTest do
     {:ok, manager: manager, processes: processes, start_link: start_link}
   end
 
+  test "can't add source twice", %{manager: manager} do
+    one = %Null{}
+    Manager.add_source(manager, "one", one)
+
+    {:error, reason} = Manager.add_source(manager, "one", one)
+    assert is_binary(reason)
+  end
+
   test "list sources", %{manager: manager} do
     one = %Null{id: "one"}
     two = %Null{id: "two"}
