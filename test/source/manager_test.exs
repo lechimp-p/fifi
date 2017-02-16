@@ -53,6 +53,11 @@ defmodule Fifi.Source.ManagerTest do
     assert Manager.list(manager) == ["one"]
   end
 
+  test "can't remove non-existing source", %{manager: manager} do
+    {:error, reason} = Manager.remove_source(manager, "one")
+    assert is_binary(reason)
+  end
+
   test "starts sources when listener is added", %{manager: manager, processes: processes, start_link: start_link} do
     one = %Null{start_link: start_link}
     Manager.add_source(manager, "one", one)

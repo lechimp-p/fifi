@@ -39,7 +39,7 @@ defmodule Fifi.Source.Manager do
   @doc """
   Remove a source from the manager.
   """
-  @spec remove_source(PID, String.t) :: :ok|:error
+  @spec remove_source(PID, String.t) :: :ok|{:error, String.t}
   def remove_source(manager, name) do
     GenServer.call(manager, {:remove_source, name})
   end
@@ -96,7 +96,12 @@ defmodule Fifi.Source.Manager do
   end
 
   def handle_call({:remove_source, name}, _from, state) do
-    {:reply, Registry.remove(state.registry, name), state}
+    if Registry.contains_source?(state.registry, name) do
+      :ok = Registry.remove(state.registry, name)
+      {:reply, :ok, state}
+    else
+      {:reply, {:error, ~s(Manager contains no source '#{name}'.)}, state}
+    end
   end
 
   def handle_call({:add_listener, name, listener}, _from, state) do
