@@ -90,4 +90,26 @@ defmodule Fifi.Source.ManagerTest do
     on_update.(23)
     assert Agent.get(called, &(&1)) == 42
   end
+
+  test "restart source processes", %{manager: manager} do
+    {:ok, processes} = Agent.start_link(fn -> [] end)
+
+    start_link = fn _f, _ou ->
+      {:ok, pid} = Agent.start_link(fn -> nil end)
+      Agent.update(processes, fn ps -> [pid | ps] end)
+      {:ok, pid}
+    end
+    one = %Null{start_link: start_link}
+    Manager.add_source(manager, "one", one)
+
+    Manager.add_listener(manager, "one", fn _ -> :ok end)
+    pid = Agent.get(processes, &(hd(&1)))
+
+    Process.exit(pid, :kill)
+
+    # Give the supervisor a chance to react.
+    Process.sleep(100)
+
+    assert Agent.get(processes, &(Enum.count(&1))) == 2
+  end
 end

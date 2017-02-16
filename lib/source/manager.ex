@@ -64,7 +64,8 @@ defmodule Fifi.Source.Manager do
 
   def init(:ok) do
     {:ok, registry} = Registry.start_link()
-    {:ok, %{registry: registry}}
+    {:ok, supervisor} = Supervisor.start_link([], strategy: :one_for_one)
+    {:ok, %{registry: registry, supervisor: supervisor}}
   end
 
   def handle_call({:list}, _from, state) do
@@ -90,17 +91,10 @@ defmodule Fifi.Source.Manager do
       {:ok, multiplexer} ->
         ref = Multiplexer.add(multiplexer, listener)
         if Multiplexer.count(multiplexer) == 1 do
-          {:ok, source} = Registry.get(state.registry, name)
-          on_update = fn v -> Multiplexer.call(multiplexer, v) end
-          case Source.start_link(source, @default_frequency, on_update) do
-            {:error, _reason} -> {:reply, :error, state}
-            {:ok, pid} ->
-              Registry.set_info(state.registry, :pid, name, pid)
-              {:reply, {:ok, {name, ref}}, state}
-          end
-        else
-          {:reply, {:ok, {name, ref}}, state}
+          # The first listener was just added.
+          start_source(state, name)
         end
+        {:reply, {:ok, {name, ref}}, state}
     end
   end
 
@@ -124,5 +118,23 @@ defmodule Fifi.Source.Manager do
 
   def handle_info(_msg, state) do
     {:noreply, state}
+  end
+
+  # helpers for supervising source processes
+
+  def start_source(state, name) do
+    args = [state.registry, name, @default_frequency]
+    options = [restart: :transient, function: :start_source_process]
+    spec = Supervisor.Spec.worker(__MODULE__, args, options)
+    Supervisor.start_child(state.supervisor, spec)
+  end
+
+  def start_source_process(registry, name, frequency) do
+    {:ok, source} = Registry.get(registry, name)
+    {:ok, multiplexer} = Registry.get_info(registry, :multiplexer, name)
+    on_update = fn v -> Multiplexer.call(multiplexer, v) end
+    {:ok, pid} = Source.start_link(source, frequency, on_update)
+    Registry.set_info(registry, :pid, name, pid)
+    {:ok, pid}
   end
 end
