@@ -55,7 +55,7 @@ defmodule Fifi.Source.Manager do
   @doc """
   Remove a listener.
   """
-  @spec remove_listener(PID, listener_ref) :: :ok|:error
+  @spec remove_listener(PID, listener_ref) :: :ok
   def remove_listener(manager, ref) do
     GenServer.call(manager, {:remove_listener, ref})
   end
@@ -119,16 +119,13 @@ defmodule Fifi.Source.Manager do
   end
 
   def handle_call({:remove_listener, {name, ref}}, _from, state) do
-    case Registry.get_info(state.registry, :multiplexer, name) do
-      :error -> {:reply, :error, state}
-      {:ok, multiplexer} ->
-        :ok = Multiplexer.remove(multiplexer, ref)
-        if Multiplexer.count(multiplexer) == 0 do
-          # The last listener was removed.
-          stop_source(state, name)
-        end
-        {:reply, :ok, state}
+    {:ok, multiplexer} = Registry.get_info(state.registry, :multiplexer, name)
+    :ok = Multiplexer.remove(multiplexer, ref)
+    # The last listener was removed.
+    if Multiplexer.count(multiplexer) == 0 do
+      stop_source(state, name)
     end
+    {:reply, :ok, state}
   end
 
   def handle_cast(_msg, state) do
