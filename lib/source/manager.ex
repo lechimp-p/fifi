@@ -104,9 +104,8 @@ defmodule Fifi.Source.Manager do
       {:ok, multiplexer} ->
         :ok = Multiplexer.remove(multiplexer, ref)
         if Multiplexer.count(multiplexer) == 0 do
-          case Registry.get_info(state.registry, :pid, name) do
-            {:ok, pid} -> Process.exit(pid, "No one is listening to that source anymore.")
-          end
+          # The last listener was removed.
+          stop_source(state, name)
         end
         {:reply, :ok, state}
     end
@@ -127,6 +126,11 @@ defmodule Fifi.Source.Manager do
     options = [restart: :transient, function: :start_source_process]
     spec = Supervisor.Spec.worker(__MODULE__, args, options)
     Supervisor.start_child(state.supervisor, spec)
+  end
+
+  def stop_source(state, name) do
+    {:ok, pid} = Registry.get_info(state.registry, :pid, name)
+    Process.exit(pid, "No one is listening to that source anymore.")
   end
 
   def start_source_process(registry, name, frequency) do
