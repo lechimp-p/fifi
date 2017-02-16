@@ -68,7 +68,8 @@ defmodule Fifi.Source.ManagerTest do
   end
 
   test "can't add listener for non-existing source", %{manager: manager} do
-    assert Manager.add_listener(manager, "one", fn _ -> :ok end) == :error
+    {:error, reason} = Manager.add_listener(manager, "one", fn _ -> :ok end)
+    assert is_binary(reason)
   end
 
   test "get reference and name when adding listener", %{manager: manager} do

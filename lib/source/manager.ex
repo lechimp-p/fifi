@@ -47,7 +47,7 @@ defmodule Fifi.Source.Manager do
   @doc """
   Add a listener for a source.
   """
-  @spec add_listener(PID, String.t, listener) :: {:ok, listener_ref}|:error
+  @spec add_listener(PID, String.t, listener) :: {:ok, listener_ref}|{:error, String.t}
   def add_listener(manager, name, listener) do
     GenServer.call(manager, {:add_listener, name, listener})
   end
@@ -105,15 +105,16 @@ defmodule Fifi.Source.Manager do
   end
 
   def handle_call({:add_listener, name, listener}, _from, state) do
-    case Registry.get_info(state.registry, :multiplexer, name) do
-      :error -> {:reply, :error, state}
-      {:ok, multiplexer} ->
-        ref = Multiplexer.add(multiplexer, listener)
-        if Multiplexer.count(multiplexer) == 1 do
-          # The first listener was just added.
-          start_source(state, name)
-        end
-        {:reply, {:ok, {name, ref}}, state}
+    if Registry.contains_source?(state.registry, name) do
+      {:ok, multiplexer} = Registry.get_info(state.registry, :multiplexer, name)
+      ref = Multiplexer.add(multiplexer, listener)
+      # The first listener was just added.
+      if Multiplexer.count(multiplexer) == 1 do
+        start_source(state, name)
+      end
+      {:reply, {:ok, {name, ref}}, state}
+    else
+      {:reply, {:error, ~s(Manager contains no source '#{name}'.)}, state}
     end
   end
 
