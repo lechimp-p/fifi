@@ -13,11 +13,19 @@ defmodule Fifi.Source.Manager do
   @type listener_ref :: {String.t, reference}
 
   @doc """
-  List all sources manager by the manager.
+  List all sources managed by the manager.
   """
   @spec list(PID) :: [String.t] 
   def list(manager) do
     GenServer.call(manager, {:list})
+  end
+
+  @doc """
+  Check if the manager has a source.
+  """
+  @spec contains_source?(PID, String.t) :: boolean
+  def contains_source?(manager, name) do
+    GenServer.call(manager, {:contains_source?, name})
   end
 
   @doc """
@@ -70,6 +78,10 @@ defmodule Fifi.Source.Manager do
 
   def handle_call({:list}, _from, state) do
     {:reply, Registry.list(state.registry), state}
+  end
+
+  def handle_call({:contains_source?, name}, _from, state) do
+    {:reply, Registry.contains_source?(state.registry, name), state}
   end
 
   def handle_call({:add_source, name, source}, _from, state) do

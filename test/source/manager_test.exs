@@ -26,6 +26,16 @@ defmodule Fifi.Source.ManagerTest do
     assert Manager.list(manager) == ["one", "two"]
   end
 
+  test "contains source", %{manager: manager} do
+    one = %Null{id: "one"}
+    two = %Null{id: "two"}
+    Manager.add_source(manager, "one", one)
+    Manager.add_source(manager, "two", two)
+    assert Manager.contains_source?(manager, "one")
+    assert Manager.contains_source?(manager, "two")
+    assert not Manager.contains_source?(manager, "three")
+  end
+
   test "remove source", %{manager: manager} do
     one = %Null{id: "one"}
     two = %Null{id: "two"}
