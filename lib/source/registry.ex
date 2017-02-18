@@ -130,15 +130,4 @@ defmodule Fifi.Source.Registry do
     end
     {:reply, res, sources}
   end
-
-  ## cast is for async callbacks, where clients don't care if msg really was
-  ## passed.
-  def handle_cast(_msg, sources) do
-    {:noreply, sources}
-  end
-
-  ## info is for all other messages.
-  def handle_info(_msg, sources) do
-    {:noreply, sources}
-  end
 end
