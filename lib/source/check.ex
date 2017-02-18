@@ -22,7 +22,7 @@ defmodule Fifi.Source.Check do
   Start the checker with a frequency (in ms), a state getting function and
   a function saying what to do when the state changes.
   """
-  @spec start_link(pos_integer, get_state, on_change, any) :: GenServer.on_start
+  @spec start(pos_integer, get_state, on_change, any) :: GenServer.on_start
   def start(frequency, get_state, on_change, initial_state \\ nil)
     when (frequency > 0)
     do
