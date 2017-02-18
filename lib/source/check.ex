@@ -10,6 +10,9 @@ defmodule Fifi.Source.Check do
   @doc """
   Start the checker with a frequency (in ms), a state getting function and
   a function saying what to do when the state changes.
+
+  One can optionally provide an initial state, if none is provided, the state is
+  queried with the get_state function at the start.
   """
   @spec start_link(pos_integer, get_state, on_change, any) :: GenServer.on_start
   def start_link(frequency, get_state, on_change, initial_state \\ nil)
@@ -21,6 +24,9 @@ defmodule Fifi.Source.Check do
   @doc """
   Start the checker with a frequency (in ms), a state getting function and
   a function saying what to do when the state changes.
+
+  One can optionally provide an initial state, if none is provided, the state is
+  queried with the get_state function at the start.
   """
   @spec start(pos_integer, get_state, on_change, any) :: GenServer.on_start
   def start(frequency, get_state, on_change, initial_state \\ nil)
