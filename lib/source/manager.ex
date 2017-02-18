@@ -128,14 +128,6 @@ defmodule Fifi.Source.Manager do
     {:reply, :ok, state}
   end
 
-  def handle_cast(_msg, state) do
-    {:noreply, state}
-  end
-
-  def handle_info(_msg, state) do
-    {:noreply, state}
-  end
-
   # helpers for supervising source processes
 
   def start_source(state, name) do
